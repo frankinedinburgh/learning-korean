@@ -110,7 +110,7 @@ export default function DeckPage() {
               </button>
 
               {showExport && (
-                <div className="absolute right-0 top-12 bg-surface border border-border rounded-xl shadow-2xl z-50 w-64 overflow-hidden">
+                <div onClick={(e) => e.stopPropagation()} className="absolute right-0 top-12 bg-surface border border-border rounded-xl shadow-2xl z-50 w-64 overflow-hidden">
                   <div className="p-4 border-b border-border">
                     <p className="text-xs text-muted uppercase tracking-widest mb-1">Exporting</p>
                     <p className="text-white text-sm font-medium">
@@ -120,7 +120,10 @@ export default function DeckPage() {
                   </div>
                   <div className="p-2">
                     <button
-                      onClick={() => handleExport('csv')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleExport('csv')}
+                      }
                       disabled={exporting}
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-surface2 transition-colors text-left disabled:opacity-50"
                     >
@@ -133,7 +136,10 @@ export default function DeckPage() {
                       </div>
                     </button>
                     <button
-                      onClick={() => handleExport('json')}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleExport('json')}
+                      }
                       disabled={exporting}
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-surface2 transition-colors text-left disabled:opacity-50"
                     >
