@@ -31,6 +31,15 @@ export default function DeckPage() {
 
   useEffect(() => { fetchCards() }, [])
 
+  useEffect(() => {
+    if (!showExport) return
+    function handleClickOutside() {
+      setShowExport(false)
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [showExport])
+
   const categories = ['all', ...Array.from(new Set(cards.map(c => c.category))).sort()]
   const filtered = activeCategory === 'all' ? cards : cards.filter(c => c.category === activeCategory)
 
@@ -57,6 +66,7 @@ export default function DeckPage() {
 
   // Triggers a browser file download using the export API
   async function handleExport(format: 'csv' | 'json') {
+    console.log('handleExport', format)
     setExporting(true)
     try {
       const params = new URLSearchParams({ format, category: activeCategory })
@@ -84,7 +94,6 @@ export default function DeckPage() {
     <div className="min-h-screen flex flex-col bg-bg">
       <Nav />
       <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-10 relative z-10">
-
         {/* Header row with title and action buttons */}
         <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
           <div>
@@ -94,23 +103,34 @@ export default function DeckPage() {
             </p>
           </div>
           <div className="flex gap-2">
-
             {/* Export dropdown */}
             <div className="relative">
               <button
                 onClick={() => setShowExport(!showExport)}
                 className="border border-accent2 text-accent2 text-xs uppercase tracking-widest px-5 py-2.5 rounded-xl hover:bg-accent2/10 transition-all flex items-center gap-2"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
                 Export
               </button>
 
               {showExport && (
-                <div onClick={(e) => e.stopPropagation()} className="absolute right-0 top-12 bg-surface border border-border rounded-xl shadow-2xl z-50 w-64 overflow-hidden">
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute right-0 top-12 bg-surface border border-border rounded-xl shadow-2xl z-50 w-64 overflow-hidden"
+                >
                   <div className="p-4 border-b border-border">
                     <p className="text-xs text-muted uppercase tracking-widest mb-1">Exporting</p>
                     <p className="text-white text-sm font-medium">
@@ -121,9 +141,10 @@ export default function DeckPage() {
                   <div className="p-2">
                     <button
                       onClick={(e) => {
-                        e.stopPropagation();
-                        handleExport('csv')}
-                      }
+                        console.log('export csv')
+                        e.stopPropagation()
+                        handleExport('csv')
+                      }}
                       disabled={exporting}
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-surface2 transition-colors text-left disabled:opacity-50"
                     >
@@ -131,15 +152,17 @@ export default function DeckPage() {
                         <span className="text-green-400 text-xs font-bold">CSV</span>
                       </div>
                       <div>
-                        <p className="text-white text-sm">{exporting ? 'Downloading...' : 'Download CSV'}</p>
+                        <p className="text-white text-sm">
+                          {exporting ? 'Downloading...' : 'Download CSV'}
+                        </p>
                         <p className="text-muted text-xs">For Excel, Google Sheets</p>
                       </div>
                     </button>
                     <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleExport('json')}
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleExport('json')
+                      }}
                       disabled={exporting}
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-surface2 transition-colors text-left disabled:opacity-50"
                     >
@@ -147,7 +170,9 @@ export default function DeckPage() {
                         <span className="text-accent2 text-xs font-bold">JSON</span>
                       </div>
                       <div>
-                        <p className="text-white text-sm">{exporting ? 'Downloading...' : 'Download JSON'}</p>
+                        <p className="text-white text-sm">
+                          {exporting ? 'Downloading...' : 'Download JSON'}
+                        </p>
                         <p className="text-muted text-xs">For developers / Anki import</p>
                       </div>
                     </button>
@@ -172,33 +197,36 @@ export default function DeckPage() {
 
         {/* Add card form */}
         {showForm && (
-          <form onSubmit={handleAdd} className="bg-surface border border-border rounded-2xl p-6 mb-8 flex flex-col gap-4">
+          <form
+            onSubmit={handleAdd}
+            className="bg-surface border border-border rounded-2xl p-6 mb-8 flex flex-col gap-4"
+          >
             <h3 className="text-xs uppercase tracking-widest text-muted">New Card</h3>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <input
                 placeholder="한국어"
                 value={form.korean}
-                onChange={e => setForm(f => ({ ...f, korean: e.target.value }))}
+                onChange={(e) => setForm((f) => ({ ...f, korean: e.target.value }))}
                 className="font-korean bg-surface2 border border-border rounded-xl px-4 py-2.5 text-white text-base placeholder-muted outline-none focus:border-accent2 transition-colors"
                 required
               />
               <input
                 placeholder="English"
                 value={form.english}
-                onChange={e => setForm(f => ({ ...f, english: e.target.value }))}
+                onChange={(e) => setForm((f) => ({ ...f, english: e.target.value }))}
                 className="bg-surface2 border border-border rounded-xl px-4 py-2.5 text-white text-sm placeholder-muted outline-none focus:border-accent2 transition-colors"
                 required
               />
               <input
                 placeholder="Romanization"
                 value={form.romanization}
-                onChange={e => setForm(f => ({ ...f, romanization: e.target.value }))}
+                onChange={(e) => setForm((f) => ({ ...f, romanization: e.target.value }))}
                 className="bg-surface2 border border-border rounded-xl px-4 py-2.5 text-white text-sm placeholder-muted outline-none focus:border-accent2 transition-colors"
               />
               <input
                 placeholder="Category"
                 value={form.category}
-                onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
                 className="bg-surface2 border border-border rounded-xl px-4 py-2.5 text-white text-sm placeholder-muted outline-none focus:border-accent2 transition-colors"
               />
             </div>
@@ -223,7 +251,7 @@ export default function DeckPage() {
 
         {/* Category filter pills */}
         <div className="flex gap-2 flex-wrap mb-6">
-          {categories.map(cat => (
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
@@ -236,7 +264,7 @@ export default function DeckPage() {
               {cat}
               {cat !== 'all' && (
                 <span className="ml-1.5 opacity-50">
-                  {cards.filter(c => c.category === cat).length}
+                  {cards.filter((c) => c.category === cat).length}
                 </span>
               )}
             </button>
@@ -269,11 +297,13 @@ export default function DeckPage() {
           ))}
         </div>
 
-        {loading && <p className="text-muted text-sm tracking-widest uppercase animate-pulse">Loading...</p>}
+        {loading && (
+          <p className="text-muted text-sm tracking-widest uppercase animate-pulse">Loading...</p>
+        )}
 
         {/* Card grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {filtered.map(card => (
+          {filtered.map((card) => (
             <div
               key={card.id}
               className="bg-surface border border-border rounded-xl p-4 flex flex-col gap-1.5 hover:border-accent2/50 transition-colors group"
@@ -298,8 +328,12 @@ export default function DeckPage() {
               {card.romanization && (
                 <span className="text-accent2 text-xs">{card.romanization}</span>
               )}
-              <span className="font-serif italic text-muted text-sm leading-snug">{card.english}</span>
-              <span className="text-xs text-muted/60 uppercase tracking-widest mt-1">{card.category}</span>
+              <span className="font-serif italic text-muted text-sm leading-snug">
+                {card.english}
+              </span>
+              <span className="text-xs text-muted/60 uppercase tracking-widest mt-1">
+                {card.category}
+              </span>
             </div>
           ))}
         </div>
@@ -308,11 +342,6 @@ export default function DeckPage() {
           <p className="text-muted text-sm text-center py-16">No cards in this category yet.</p>
         )}
       </main>
-
-      {/* Invisible overlay to close the export dropdown when clicking outside */}
-      {showExport && (
-        <div className="fixed inset-0 z-40" onClick={() => setShowExport(false)} />
-      )}
     </div>
   )
 }
