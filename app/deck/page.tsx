@@ -195,7 +195,7 @@ export default function DeckPage() {
           <div className="flex items-center justify-between mb-4 bg-surface border border-border rounded-xl px-4 py-3">
             <p className="text-sm text-muted">
               Showing <span className="text-white">{filtered.length} cards</span> in{' '}
-              <span className="text-accent">"{activeCategory}"</span>
+              <span className="text-accent">{activeCategory}</span>
             </p>
             <p className="text-xs text-muted">Use the CSV / JSON buttons above to export</p>
           </div>
