@@ -1,22 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { memo } from 'react'
 import type { CardWithReview } from '@/lib/types'
 
 interface FlashcardProps {
-  card: CardWithReview
+  card: Pick<CardWithReview, 'korean' | 'english' | 'romanization' | 'category'>
   onRate: (rating: 1 | 2 | 3 | 4) => void
+  isFlipped: boolean
+  onFlip: () => void
 }
 
-export default function Flashcard({ card, onRate }: FlashcardProps) {
-  const [flipped, setFlipped] = useState(false)
-
-  function handleFlip() {
-    if (!flipped) setFlipped(true)
-  }
-
+export default memo(function Flashcard({ card, onRate, isFlipped, onFlip }: FlashcardProps) {
   function handleRate(rating: 1 | 2 | 3 | 4) {
-    setFlipped(false)
+    // we set the flipped state so the css transitio can play, then call onRate after a short delay to update the card
     setTimeout(() => onRate(rating), 100)
   }
 
@@ -25,14 +21,19 @@ export default function Flashcard({ card, onRate }: FlashcardProps) {
       {/* Card */}
       <div
         className="card-scene w-full h-72 cursor-pointer"
-        onClick={handleFlip}
+        onClick={onFlip}
         role="button"
         aria-label="Flip card"
       >
-        <div className={`card-inner w-full h-full relative ${flipped ? 'flipped' : ''}`}>
+        <div className={`card-inner w-full h-full relative ${isFlipped ? 'flipped' : ''}`}>
           {/* Front */}
-          <div className="card-face absolute inset-0 rounded-2xl border border-border bg-surface flex flex-col items-center justify-center gap-3 p-8"
-            style={{ background: 'radial-gradient(ellipse at 30% 20%, rgba(124,106,247,0.08) 0%, transparent 60%), #16161a' }}>
+          <div
+            className="card-face absolute inset-0 rounded-2xl border border-border bg-surface flex flex-col items-center justify-center gap-3 p-8"
+            style={{
+              background:
+                'radial-gradient(ellipse at 30% 20%, rgba(124,106,247,0.08) 0%, transparent 60%), #16161a',
+            }}
+          >
             <span className="absolute top-4 right-4 text-xs uppercase tracking-widest text-muted bg-surface2 border border-border px-3 py-1 rounded-full">
               {card.category}
             </span>
@@ -44,8 +45,13 @@ export default function Flashcard({ card, onRate }: FlashcardProps) {
           </div>
 
           {/* Back */}
-          <div className="card-face card-back-face absolute inset-0 rounded-2xl border border-border flex flex-col items-center justify-center gap-3 p-8"
-            style={{ background: 'radial-gradient(ellipse at 70% 80%, rgba(232,197,71,0.07) 0%, transparent 60%), #1e1e24' }}>
+          <div
+            className="card-face card-back-face absolute inset-0 rounded-2xl border border-border flex flex-col items-center justify-center gap-3 p-8"
+            style={{
+              background:
+                'radial-gradient(ellipse at 70% 80%, rgba(232,197,71,0.07) 0%, transparent 60%), #1e1e24',
+            }}
+          >
             <span className="absolute top-4 right-4 text-xs uppercase tracking-widest text-muted bg-surface border border-border px-3 py-1 rounded-full">
               {card.category}
             </span>
@@ -61,13 +67,21 @@ export default function Flashcard({ card, onRate }: FlashcardProps) {
       </div>
 
       {/* Answer buttons */}
-      <div className={`flex gap-3 transition-all duration-300 ${flipped ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'}`}>
-        {([
-          { rating: 1, label: 'Again', color: 'border-red-400 text-red-400 hover:bg-red-400/10' },
-          { rating: 2, label: 'Hard', color: 'border-muted text-muted hover:bg-white/5' },
-          { rating: 3, label: 'Good', color: 'border-accent text-accent hover:bg-accent/10' },
-          { rating: 4, label: 'Easy', color: 'border-green-400 text-green-400 hover:bg-green-400/10' },
-        ] as const).map(({ rating, label, color }) => (
+      <div
+        className={`flex gap-3 transition-all duration-300 ${isFlipped ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'}`}
+      >
+        {(
+          [
+            { rating: 1, label: 'Again', color: 'border-red-400 text-red-400 hover:bg-red-400/10' },
+            { rating: 2, label: 'Hard', color: 'border-muted text-muted hover:bg-white/5' },
+            { rating: 3, label: 'Good', color: 'border-accent text-accent hover:bg-accent/10' },
+            {
+              rating: 4,
+              label: 'Easy',
+              color: 'border-green-400 text-green-400 hover:bg-green-400/10',
+            },
+          ] as const
+        ).map(({ rating, label, color }) => (
           <button
             key={rating}
             onClick={() => handleRate(rating as 1 | 2 | 3 | 4)}
@@ -79,4 +93,4 @@ export default function Flashcard({ card, onRate }: FlashcardProps) {
       </div>
     </div>
   )
-}
+})
