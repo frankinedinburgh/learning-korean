@@ -9,14 +9,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: '#0d0d0f',
-        surface: '#16161a',
-        surface2: '#1e1e24',
-        border: '#2a2a35',
-        accent: '#e8c547',
-        accent2: '#7c6af7',
-        accent3: '#4ecdc4',
-        muted: '#7a7a8a',
+        bg: 'rgb(var(--color-bg) / <alpha-value>)',
+        surface: 'rgb(var(--color-surface) / <alpha-value>)',
+        surface2: 'rgb(var(--color-surface2) / <alpha-value>)',
+        border: 'rgb(var(--color-border) / <alpha-value>)',
+        accent: 'rgb(var(--color-accent) / <alpha-value>)',
+        accent2: 'rgb(var(--color-accent2) / <alpha-value>)',
+        accent3: 'rgb(var(--color-accent3) / <alpha-value>)',
+        muted: 'rgb(var(--color-muted) / <alpha-value>)',
+        foreground: 'rgb(var(--color-foreground) / <alpha-value>)',
       },
     },
   },

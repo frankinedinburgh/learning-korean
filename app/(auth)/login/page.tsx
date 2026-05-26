@@ -42,7 +42,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-10">
-          <h1 className="font-serif text-4xl italic text-white mb-1">
+          <h1 className="font-serif text-4xl italic text-foreground mb-1">
             한국어 <span className="text-accent">flashcards</span>
           </h1>
           <p className="text-muted text-xs tracking-widest uppercase">
@@ -56,17 +56,17 @@ export default function LoginPage() {
             type="email"
             placeholder="Email"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             required
-            className="bg-surface border border-border rounded-xl px-4 py-3 text-sm text-white placeholder-muted outline-none focus:border-accent2 transition-colors"
+            className="bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder-muted outline-none focus:border-accent2 transition-colors"
           />
           <input
             type="password"
             placeholder="Password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             required
-            className="bg-surface border border-border rounded-xl px-4 py-3 text-sm text-white placeholder-muted outline-none focus:border-accent2 transition-colors"
+            className="bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder-muted outline-none focus:border-accent2 transition-colors"
           />
 
           <button
@@ -78,13 +78,11 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {message && (
-          <p className="text-center text-xs mt-4 text-accent3">{message}</p>
-        )}
+        {message && <p className="text-center text-xs mt-4 text-accent3">{message}</p>}
 
         <button
           onClick={() => setIsSignUp(!isSignUp)}
-          className="w-full text-center text-xs text-muted mt-6 hover:text-white transition-colors"
+          className="w-full text-center text-xs text-muted mt-6 hover:text-foreground transition-colors"
         >
           {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
         </button>

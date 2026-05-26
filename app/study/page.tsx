@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Nav from '@/components/Nav'
 import Flashcard from '@/components/Flashcard'
+import { StudySessionFactory } from '@/lib/study-session-factory'
 import type { CardWithReview } from '@/lib/types'
 
 type SessionState =
@@ -10,12 +12,11 @@ type SessionState =
   | { status: 'active'; cards: CardWithReview[]; index: number; done: number; isFlipped: boolean }
   | { status: 'complete'; total: number }
 
-
-
-
-export default function StudyPage() {
+function StudyPageContent() {
   const handleKeyDownRef = useRef<(e: KeyboardEvent) => void>()
   const [session, setSession] = useState<SessionState>({ status: 'loading' })
+  const searchParams = useSearchParams()
+  const category = searchParams.get('category')
 
   // 3. The actual listener is a stable wrapper — registers ONCE, never recreated
   useEffect(() => {
@@ -27,10 +28,13 @@ export default function StudyPage() {
   }, []) // ← empty array, registers once on mount
 
   const fetchDueCards = useCallback(async () => {
-    const res = await fetch('/api/cards?due=true')
+    const { endpoint } = category
+      ? StudySessionFactory.byCategory(category)
+      : StudySessionFactory.allDue()
+    const res = await fetch(endpoint)
     const data = await res.json()
     setSession({ status: 'active', cards: data, index: 0, done: 0, isFlipped: false })
-  }, [])
+  }, [category])
 
   useEffect(() => {
     fetchDueCards()
@@ -145,5 +149,13 @@ export default function StudyPage() {
         )}
       </main>
     </div>
+  )
+}
+
+export default function StudyPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-bg" />}>
+      <StudyPageContent />
+    </Suspense>
   )
 }

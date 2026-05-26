@@ -1,12 +1,13 @@
 import Nav from '@/components/Nav'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import { Suspense } from 'react'
+import { Fragment, Suspense } from 'react'
 
 interface StatsData {
   counts: { new: number; learning: number; review: number; mastered: number }
   total: number
   due: number
+  accuracy: Record<string, { total: number; correct: number }>
 }
 
 const STAGE_META = [
@@ -24,12 +25,19 @@ async function getStats(): Promise<StatsData> {
   if (!user) redirect('/login')
 
   const now = new Date().toISOString()
+  const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  const [{ data: reviews }, { data: totalCards }, { data: dueReviews }] = await Promise.all([
-    supabase.from('reviews').select('stage').eq('user_id', user.id),
-    supabase.from('cards').select('id', { count: 'exact' }).eq('user_id', user.id),
-    supabase.from('reviews').select('id').eq('user_id', user.id).lte('due', now),
-  ])
+  const [{ data: reviews }, { data: totalCards }, { data: dueReviews }, { data: reviewLog }] =
+    await Promise.all([
+      supabase.from('reviews').select('stage').eq('user_id', user.id),
+      supabase.from('cards').select('id', { count: 'exact' }).eq('user_id', user.id),
+      supabase.from('reviews').select('id').eq('user_id', user.id).lte('due', now),
+      supabase
+        .from('review_log')
+        .select('category, rating')
+        .eq('user_id', user.id)
+        .gte('reviewed_at', lastWeek),
+    ])
 
   const counts = { new: 0, learning: 0, review: 0, mastered: 0 }
   reviews?.forEach((r) => {
@@ -40,10 +48,26 @@ async function getStats(): Promise<StatsData> {
   const totalCount = totalCards?.length ?? 0
   counts.new += Math.max(0, totalCount - reviewedCount)
 
+  const accuracy = reviewLog?.reduce(
+    (acc, value) => {
+      return {
+        ...acc,
+        [value.category]: acc[value.category]
+          ? {
+              total: acc[value.category].total + 1,
+              correct: acc[value.category].correct + (value.rating >= 3 ? 1 : 0),
+            }
+          : { total: 1, correct: value.rating >= 3 ? 1 : 0 },
+      }
+    },
+    {} as Record<string, { total: number; correct: number }>
+  )
+
   return {
     counts,
     total: totalCount,
     due: (dueReviews?.length ?? 0) + Math.max(0, totalCount - reviewedCount),
+    accuracy: accuracy ?? {},
   }
 }
 
@@ -53,13 +77,15 @@ export default function StatsPage() {
     <div className="min-h-screen flex flex-col bg-bg">
       <Nav />
       <main className="flex-1 max-w-2xl mx-auto w-full px-6 py-10 relative z-10">
-        <h1 className="font-serif text-3xl italic text-white mb-8">Your Progress</h1>
+        <h1 className="font-serif text-3xl italic text-foreground mb-8">Your Progress</h1>
 
-        <Suspense fallback={
-          <p className="text-muted text-sm tracking-widest uppercase animate-pulse">
-            Loading stats...
-          </p>
-        }>
+        <Suspense
+          fallback={
+            <p className="text-muted text-sm tracking-widest uppercase animate-pulse">
+              Loading stats...
+            </p>
+          }
+        >
           <StatsContent />
         </Suspense>
       </main>
@@ -78,7 +104,7 @@ function SummaryCards({ stats }: { stats: StatsData }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       {[
-        { label: 'Total Cards', value: stats.total, color: 'text-white' },
+        { label: 'Total Cards', value: stats.total, color: 'text-foreground' },
         { label: 'Due Now', value: stats.due, color: 'text-accent' },
         { label: 'Mastered', value: stats.counts.mastered, color: 'text-green-400' },
         { label: 'Learning', value: stats.counts.learning, color: 'text-accent2' },
@@ -120,11 +146,35 @@ function StatsGrid({ stats, maxCount }: { stats: StatsData; maxCount: number }) 
         })}
       </div>
 
+      {/* Acccuracy */}
+      <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col gap-6">
+        {Object.entries(stats.accuracy).length === 0 ? (
+          <p className="text-muted text-sm">No reviews in the last 7 days</p>
+        ) : (
+          Object.entries(stats.accuracy).map(([category, { total, correct }]) => (
+            <div key={category} className="flex gap-8 items-center">
+              <div>
+                <MasteryRing mastered={correct} total={total} />
+              </div>
+              <div>
+                <h2 className="font-serif text-2xl italic text-foreground mb-1">
+                  {total > 0 ? `${Math.round((correct / total) * 100)}% accuracy` : 'No cards yet'}
+                </h2>
+                <p className="text-muted text-sm">
+                  {correct} of {total} accuracy in the last 7 days for category{' '}
+                  <span className="text-sm text-accent w-20 shrink-0">{category}</span>
+                </p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {/* Mastery progress ring (SVG) */}
       <div className="bg-surface border border-border rounded-2xl p-6 flex items-center gap-8">
         <MasteryRing mastered={stats.counts.mastered} total={stats.total} />
         <div>
-          <h2 className="font-serif text-2xl italic text-white mb-1">
+          <h2 className="font-serif text-2xl italic text-foreground mb-1">
             {stats.total > 0
               ? `${Math.round((stats.counts.mastered / stats.total) * 100)}% mastered`
               : 'No cards yet'}

@@ -1,13 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import type { CardWithReview } from '@/lib/types'
+import type { CardWithReview, Card } from '@/lib/types'
 
-interface CreateCardData {
-  korean: string
-  english: string
-  romanization?: string
-  category?: string
-  is_public?: boolean
-}
+type CreateCardData = Omit<Card, 'created_at' | 'id' | 'user_id'> 
 
 export const CardsRepository = {
   async getCards(

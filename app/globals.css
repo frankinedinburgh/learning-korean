@@ -2,13 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* globals.css */
 :root {
   --font-korean: 'Noto Sans KR', sans-serif;
+  --color-bg: 13 13 15;
+  --color-surface: 22 22 26;
+  --color-surface2: 30 30 36;
+  --color-border: 42 42 53;
+  --color-accent: 232 197 71;
+  --color-accent2: 124 106 247;
+  --color-accent3: 78 205 196;
+  --color-muted: 122 122 138;
+  --color-foreground: 255 255 255;
+}
+
+[data-theme='light'] {
+  --color-bg: 245 245 240;
+  --color-surface: 255 255 255;
+  --color-surface2: 235 235 235;
+  --color-border: 208 208 216;
+  --color-accent: 201 160 32;
+  --color-accent2: 90 74 209;
+  --color-accent3: 46 168 159;
+  --color-muted: 102 102 119;
+  --color-foreground: 15 15 15;
 }
 
 @layer base {
   body {
-    background-color: #0d0d0f;
+    background-color: rgb(var(--color-bg));
   }
 }
 
@@ -51,4 +73,8 @@ body::before {
   z-index: 0;
 }
 
-#__next, main { position: relative; z-index: 1; }
+#__next,
+main {
+  position: relative;
+  z-index: 1;
+}

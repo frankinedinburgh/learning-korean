@@ -30,10 +30,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap"
           rel="stylesheet"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+    const t = localStorage.getItem('theme');
+    if (t) document.documentElement.dataset.theme = t;
+  `,
+          }}
+        />
       </head>
-      <body className="bg-bg text-white min-h-screen font-mono antialiased">
-        {children}
-      </body>
+      <body className="bg-bg text-foreground min-h-screen font-mono antialiased">{children}</body>
     </html>
   )
 }

@@ -91,3 +91,26 @@ begin
     (p_user_id, '내일', 'Tomorrow', 'naeil', 'nouns');
 end;
 $$;
+
+
+-- Review log — append-only history of every card rating
+-- Unlike `reviews` which stores current state, this never overwrites
+create table public.review_log (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid references auth.users on delete cascade,
+  card_id     uuid references public.cards on delete cascade,
+  category    text not null default 'general',
+  rating      int not null,              -- 1=Again 2=Hard 3=Good 4=Easy
+  reviewed_at timestamptz default now()
+);
+
+alter table public.review_log enable row level security;
+
+create policy "Users can read their own review log" on public.review_log
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert their own review log" on public.review_log
+  for insert with check (auth.uid() = user_id);
+
+-- Index for fast 7-day accuracy queries (user + time range)
+create index review_log_user_time_idx on public.review_log (user_id, reviewed_at desc);

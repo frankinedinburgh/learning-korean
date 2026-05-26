@@ -16,13 +16,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'card_id and rating are required' }, { status: 400 })
   }
 
-  // Get existing review state or use defaults
-  const { data: existing } = await supabase
-    .from('reviews')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('card_id', card_id)
-    .single()
+  // Get existing review state and card category in parallel
+  const [{ data: existing }, { data: card }] = await Promise.all([
+    supabase.from('reviews').select('*').eq('user_id', user.id).eq('card_id', card_id).single(),
+    supabase.from('cards').select('category').eq('id', card_id).eq('user_id', user.id).single(),
+  ])
 
   const currentState: ReviewState = existing ?? {
     interval_days: 0,
@@ -47,6 +45,15 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Append to review log — never overwrites, used for accuracy stats
+  await supabase.from('review_log').insert({
+    user_id: user.id,
+    card_id,
+    category: card?.category ?? 'general',
+    rating,
+  })
+
   return NextResponse.json(data)
 }
 
