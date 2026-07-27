@@ -19,6 +19,7 @@ export default function DeckClient({ initialCards }: { initialCards: CardWithRev
   const [formState, setFormState] = useState<FormState>('closed')
   const [form, setForm] = useState({ korean: '', english: '', romanization: '', category: '' })
   const [exporting, setExporting] = useState(false)
+  const [addError, setAddError] = useState<string | null>(null)
 
   const categories = ['all', ...Array.from(new Set(cards.map((c) => c.category))).sort()]
   const filtered = activeCategory === 'all' ? cards : cards.filter((c) => c.category === activeCategory)
@@ -27,11 +28,18 @@ export default function DeckClient({ initialCards }: { initialCards: CardWithRev
     e.preventDefault()
     if (!form.korean || !form.english) return
     setFormState('saving')
+    setAddError(null)
     const res = await fetch('/api/cards', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, category: form.category || 'general' }),
     })
+    if (!res.ok) {
+      const body = await res.json().catch(() => null)
+      setAddError(body?.error ?? 'Failed to add card')
+      setFormState('open')
+      return
+    }
     const newCard = await res.json()
     setCards((prev) => [...prev, { ...newCard, review: null }])
     setForm({ korean: '', english: '', romanization: '', category: '' })
@@ -134,6 +142,7 @@ export default function DeckClient({ initialCards }: { initialCards: CardWithRev
               className="bg-surface2 border border-border rounded-xl px-4 py-2.5 text-white text-sm placeholder-muted outline-none focus:border-accent2 transition-colors"
             />
           </div>
+          {addError && <p className="text-red-400 text-xs">{addError}</p>}
           <div className="flex gap-3">
             <button
               type="submit"

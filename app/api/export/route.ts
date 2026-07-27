@@ -37,13 +37,18 @@ export async function GET(req: NextRequest) {
     })
   }
 
+  // Prefix a leading apostrophe on fields starting with =, +, -, or @ so
+  // spreadsheet apps (Excel/Sheets) treat them as text, not formulas.
+  const csvSafe = (value: string) =>
+    /^[=+\-@]/.test(value) ? `'${value}` : value
+
   const rows = [
     ['Korean', 'English', 'Romanization', 'Category'],
     ...(cards ?? []).map(c => [
-      `"${(c.korean ?? '').replace(/"/g, '""')}"`,
-      `"${(c.english ?? '').replace(/"/g, '""')}"`,
-      `"${(c.romanization ?? '').replace(/"/g, '""')}"`,
-      `"${(c.category ?? '').replace(/"/g, '""')}"`,
+      `"${csvSafe(c.korean ?? '').replace(/"/g, '""')}"`,
+      `"${csvSafe(c.english ?? '').replace(/"/g, '""')}"`,
+      `"${csvSafe(c.romanization ?? '').replace(/"/g, '""')}"`,
+      `"${csvSafe(c.category ?? '').replace(/"/g, '""')}"`,
     ]),
   ]
 

@@ -1,14 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function ThemeToggle() {
   const [isLight, setIsLight] = useState(false)
 
+  useEffect(() => {
+    setIsLight(document.documentElement.dataset.theme === 'light')
+  }, [])
+
   function toggle() {
     const next = !isLight
     setIsLight(next)
-    document.documentElement.dataset.theme = next ? 'light' : ''
+    document.documentElement.dataset.theme = next ? 'light' : 'dark'
+    localStorage.setItem('theme', next ? 'light' : 'dark')
   }
 
   return (
