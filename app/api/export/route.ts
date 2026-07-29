@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { CardsRepository } from '@/lib/repositories/card'
 
 export async function GET(req: NextRequest) {
   const supabase = createServerSupabaseClient()
@@ -8,25 +9,22 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url)
   const category = searchParams.get('category')
+  const subcategory = searchParams.get('subcategory')
   const format = searchParams.get('format') ?? 'csv'
 
-  let query = supabase
-    .from('cards')
-    .select('korean, english, romanization, category')
-    .eq('user_id', user.id)
-    .order('category')
-    .order('korean')
+  const cards = await CardsRepository.getCardsForExport(
+    user.id,
+    category ?? undefined,
+    subcategory ?? undefined
+  )
 
-  if (category && category !== 'all') {
-    query = query.eq('category', category)
-  }
-
-  const { data: cards, error } = await query
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  const filename = category && category !== 'all'
-    ? `korean-${category}`
-    : 'korean-all-cards'
+  const filename = [
+    'korean',
+    category && category !== 'all' ? category : 'all-cards',
+    subcategory || null,
+  ]
+    .filter(Boolean)
+    .join('-')
 
   if (format === 'json') {
     return new NextResponse(JSON.stringify(cards, null, 2), {
@@ -43,12 +41,13 @@ export async function GET(req: NextRequest) {
     /^[=+\-@]/.test(value) ? `'${value}` : value
 
   const rows = [
-    ['Korean', 'English', 'Romanization', 'Category'],
+    ['Korean', 'English', 'Romanization', 'Category', 'Subcategory'],
     ...(cards ?? []).map(c => [
       `"${csvSafe(c.korean ?? '').replace(/"/g, '""')}"`,
       `"${csvSafe(c.english ?? '').replace(/"/g, '""')}"`,
       `"${csvSafe(c.romanization ?? '').replace(/"/g, '""')}"`,
       `"${csvSafe(c.category ?? '').replace(/"/g, '""')}"`,
+      `"${csvSafe(c.subcategory ?? '').replace(/"/g, '""')}"`,
     ]),
   ]
 

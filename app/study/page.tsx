@@ -17,6 +17,7 @@ function StudyPageContent() {
   const [session, setSession] = useState<SessionState>({ status: 'loading' })
   const searchParams = useSearchParams()
   const category = searchParams.get('category')
+  const subcategory = searchParams.get('subcategory')
 
   // 3. The actual listener is a stable wrapper — registers ONCE, never recreated
   useEffect(() => {
@@ -29,12 +30,12 @@ function StudyPageContent() {
 
   const fetchDueCards = useCallback(async () => {
     const { endpoint } = category
-      ? StudySessionFactory.byCategory(category)
+      ? StudySessionFactory.byCategory(category, subcategory ?? undefined)
       : StudySessionFactory.allDue()
     const res = await fetch(endpoint)
     const data = await res.json()
     setSession({ status: 'active', cards: data, index: 0, done: 0, isFlipped: false })
-  }, [category])
+  }, [category, subcategory])
 
   useEffect(() => {
     fetchDueCards()

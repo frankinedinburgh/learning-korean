@@ -114,3 +114,16 @@ create policy "Users can insert their own review log" on public.review_log
 
 -- Index for fast 7-day accuracy queries (user + time range)
 create index review_log_user_time_idx on public.review_log (user_id, reviewed_at desc);
+
+
+-- Subcategories — e.g. category 'ttmik' with subcategory 'Level 1'..'Level 10'.
+-- Nullable: categories without subcategories are unaffected.
+alter table public.cards add column if not exists subcategory text;
+
+-- Prevent duplicate cards (same word/category/subcategory inserted twice,
+-- e.g. by a bulk import run more than once). Postgres treats NULL as
+-- distinct from itself in a plain unique constraint, so with a nullable
+-- subcategory column an expression index that coalesces NULL to '' is used
+-- instead, to keep catching duplicates for cards with no subcategory too.
+create unique index if not exists cards_unique_user_category_subcat_korean_english
+  on public.cards (user_id, category, coalesce(subcategory, ''), korean, english);

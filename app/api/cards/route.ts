@@ -12,7 +12,6 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { searchParams } = new URL(req.url)
-  // Fetch cards
 
   return withErrorHandling(
     withLogging(
@@ -20,6 +19,7 @@ export async function GET(req: NextRequest) {
         CardsRepository.getCards(user.id, {
           dueOnly: searchParams.get('due') === 'true',
           category: searchParams.get('category') ?? undefined,
+          subcategory: searchParams.get('subcategory') ?? undefined,
         }),
       'getCards'
     )
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { korean, english, romanization, category, is_public } = body
+  const { korean, english, romanization, category, subcategory, is_public } = body
 
   if (!korean || !english) {
     return NextResponse.json({ error: 'korean and english are required' }, { status: 400 })
@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
           english,
           romanization,
           category,
+          subcategory: subcategory || null,
           is_public,
         }),
       'createCard'

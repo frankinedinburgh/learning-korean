@@ -5,6 +5,7 @@ export interface Card {
   english: string
   romanization: string | null
   category: string
+  subcategory: string | null
   is_public: boolean
   created_at: string
 }
