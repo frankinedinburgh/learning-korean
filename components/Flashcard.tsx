@@ -72,23 +72,23 @@ export default memo(function Flashcard({ card, onRate, isFlipped, onFlip }: Flas
               <p className="text-accent2 text-sm tracking-wide">{card.romanization}</p>
             )}
             {(card.example_present || card.example_past || card.example_future) && (
-              <div className="mt-3 flex gap-3 text-xs">
+              <div className="mt-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
                 {card.example_present && (
                   <span className="text-muted">
-                    <span className="uppercase tracking-widest text-[10px] text-muted/60">Pres </span>
-                    <span className="font-korean text-white">{card.example_present}</span>
+                    <span className="uppercase tracking-widest text-xs text-muted/60">Pres </span>
+                    <span className="font-korean text-base text-white">{card.example_present}</span>
                   </span>
                 )}
                 {card.example_past && (
                   <span className="text-muted">
-                    <span className="uppercase tracking-widest text-[10px] text-muted/60">Past </span>
-                    <span className="font-korean text-white">{card.example_past}</span>
+                    <span className="uppercase tracking-widest text-xs text-muted/60">Past </span>
+                    <span className="font-korean text-base text-white">{card.example_past}</span>
                   </span>
                 )}
                 {card.example_future && (
                   <span className="text-muted">
-                    <span className="uppercase tracking-widest text-[10px] text-muted/60">Fut </span>
-                    <span className="font-korean text-white">{card.example_future}</span>
+                    <span className="uppercase tracking-widest text-xs text-muted/60">Fut </span>
+                    <span className="font-korean text-base text-white">{card.example_future}</span>
                   </span>
                 )}
               </div>
