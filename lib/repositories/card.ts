@@ -1,30 +1,12 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { CardWithReview, Card } from '@/lib/types'
+import { fetchAllRows } from '@/lib/supabase-pagination'
 
-type CreateCardData = Omit<Card, 'created_at' | 'id' | 'user_id'>
-
-// Supabase/PostgREST caps rows per request at 1000 (db-max-rows) regardless
-// of how large a `.range()` is requested, so fetching a full deck beyond
-// that count requires looping pages and concatenating the results.
-const MAX_ROWS_PER_PAGE = 1000
-
-async function fetchAllRows<T>(
-  buildQuery: (
-    from: number,
-    to: number
-  ) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>
-): Promise<T[]> {
-  const rows: T[] = []
-  let from = 0
-  while (true) {
-    const { data, error } = await buildQuery(from, from + MAX_ROWS_PER_PAGE - 1)
-    if (error) throw new Error(error.message)
-    rows.push(...(data ?? []))
-    if (!data || data.length < MAX_ROWS_PER_PAGE) break
-    from += MAX_ROWS_PER_PAGE
-  }
-  return rows
-}
+type CreateCardData = Omit<
+  Card,
+  'created_at' | 'id' | 'user_id' | 'example_present' | 'example_past' | 'example_future'
+> &
+  Partial<Pick<Card, 'example_present' | 'example_past' | 'example_future'>>
 
 export const CardsRepository = {
   async getCards(
@@ -164,6 +146,9 @@ export const CardsRepository = {
         category: data.category ?? 'general',
         subcategory: data.subcategory ?? null,
         is_public: data.is_public ?? false,
+        example_present: data.example_present ?? null,
+        example_past: data.example_past ?? null,
+        example_future: data.example_future ?? null,
       })
       .select()
       .single()

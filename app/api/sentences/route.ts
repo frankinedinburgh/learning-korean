@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { CardsRepository } from '@/lib/repositories/card'
+import { SentencesRepository } from '@/lib/repositories/sentence'
 import { withErrorHandling, withLogging } from '@/lib/api-helper'
 
-// GET /api/cards — fetch user's cards with review state
+// GET /api/sentences — fetch user's sentences for practice
 export async function GET(req: NextRequest) {
   const supabase = createServerSupabaseClient()
   const {
@@ -16,17 +16,16 @@ export async function GET(req: NextRequest) {
   return withErrorHandling(
     withLogging(
       () =>
-        CardsRepository.getCards(user.id, {
-          dueOnly: searchParams.get('due') === 'true',
+        SentencesRepository.getSentences(user.id, {
           category: searchParams.get('category') ?? undefined,
           subcategory: searchParams.get('subcategory') ?? undefined,
         }),
-      'getCards'
+      'getSentences'
     )
   )
 }
 
-// POST /api/cards — create a new card
+// POST /api/sentences — create a new sentence
 export async function POST(req: NextRequest) {
   const supabase = createServerSupabaseClient()
   const {
@@ -35,53 +34,45 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const {
-    korean,
-    english,
-    romanization,
-    category,
-    subcategory,
-    is_public,
-    example_present,
-    example_past,
-    example_future,
-  } = body
+  const { korean, english, chunks, decoy_chunks, category, subcategory } = body
 
-  if (!korean || !english) {
-    return NextResponse.json({ error: 'korean and english are required' }, { status: 400 })
+  if (!korean || !english || !Array.isArray(chunks) || chunks.length === 0) {
+    return NextResponse.json(
+      { error: 'korean, english, and at least one chunk are required' },
+      { status: 400 }
+    )
   }
 
   return withErrorHandling(
     withLogging(
       () =>
-        CardsRepository.createCard(user.id, {
+        SentencesRepository.createSentence(user.id, {
           korean,
           english,
-          romanization,
+          chunks,
+          decoy_chunks: Array.isArray(decoy_chunks) ? decoy_chunks : [],
           category,
           subcategory: subcategory || null,
-          is_public,
-          example_present: example_present || null,
-          example_past: example_past || null,
-          example_future: example_future || null,
         }),
-      'createCard'
+      'createSentence'
     ),
     201
   )
 }
 
-// DELETE /api/cards?id=xxx
+// DELETE /api/sentences?id=xxx
 export async function DELETE(req: NextRequest) {
   const supabase = createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const id = new URL(req.url).searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
   return withErrorHandling(
-    withLogging(() => CardsRepository.deleteCard(user.id, id), 'deleteCard'),
+    withLogging(() => SentencesRepository.deleteSentence(user.id, id), 'deleteSentence'),
     204
   )
 }

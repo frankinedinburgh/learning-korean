@@ -26,6 +26,15 @@ export function chunk<T>(group: T[], size: number): T[][] {
   return result
 }
 
+export function shuffle<T>(items: T[]): T[] {
+  const result = [...items]
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
+}
+
 export function flattenCategories<T>(decks: { name: string; cards: T[] }[]) {
   return decks.flatMap((deck) => {
     return deck.cards.map((card) => {

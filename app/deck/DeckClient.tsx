@@ -57,7 +57,11 @@ export default function DeckClient({
     romanization: '',
     category: '',
     subcategory: '',
+    example_present: '',
+    example_past: '',
+    example_future: '',
   })
+  const [showTenseFields, setShowTenseFields] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
 
@@ -192,7 +196,17 @@ export default function DeckClient({
     if (matchesFilter) {
       setCards((prev) => [...prev, newCard])
     }
-    setForm({ korean: '', english: '', romanization: '', category: '', subcategory: '' })
+    setForm({
+      korean: '',
+      english: '',
+      romanization: '',
+      category: '',
+      subcategory: '',
+      example_present: '',
+      example_past: '',
+      example_future: '',
+    })
+    setShowTenseFields(false)
     setFormState('closed')
   }
 
@@ -315,6 +329,38 @@ export default function DeckClient({
               className="bg-surface2 border border-border rounded-xl px-4 py-2.5 text-white text-sm placeholder-muted outline-none focus:border-accent2 transition-colors"
             />
           </div>
+
+          <button
+            type="button"
+            onClick={() => setShowTenseFields((s) => !s)}
+            className="text-xs text-muted hover:text-white transition-colors self-start"
+          >
+            {showTenseFields ? '− Hide verb tense examples' : '+ Add verb tense examples (optional)'}
+          </button>
+
+          {showTenseFields && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <input
+                placeholder="Present, e.g. 가요"
+                value={form.example_present}
+                onChange={(e) => setForm((f) => ({ ...f, example_present: e.target.value }))}
+                className="font-korean bg-surface2 border border-border rounded-xl px-4 py-2.5 text-white text-sm placeholder-muted outline-none focus:border-accent2 transition-colors"
+              />
+              <input
+                placeholder="Past, e.g. 갔어요"
+                value={form.example_past}
+                onChange={(e) => setForm((f) => ({ ...f, example_past: e.target.value }))}
+                className="font-korean bg-surface2 border border-border rounded-xl px-4 py-2.5 text-white text-sm placeholder-muted outline-none focus:border-accent2 transition-colors"
+              />
+              <input
+                placeholder="Future, e.g. 갈 거예요"
+                value={form.example_future}
+                onChange={(e) => setForm((f) => ({ ...f, example_future: e.target.value }))}
+                className="font-korean bg-surface2 border border-border rounded-xl px-4 py-2.5 text-white text-sm placeholder-muted outline-none focus:border-accent2 transition-colors"
+              />
+            </div>
+          )}
+
           {addError && <p className="text-red-400 text-xs">{addError}</p>}
           <div className="flex gap-3">
             <button

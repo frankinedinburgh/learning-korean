@@ -22,6 +22,7 @@ export default function Nav({ dueCount = 0 }: NavProps) {
 
   const tabs = [
     { href: '/study', label: 'Study' },
+    { href: '/practice', label: 'Practice' },
     { href: '/deck', label: 'Deck' },
     { href: '/stats', label: 'Stats' },
   ]

@@ -9,7 +9,10 @@ describe('Flashcard component', () => {
             category: 'Animals',
             korean: '호랑이',
             english: 'Tiger',
-            romanization: 'horangi'
+            romanization: 'horangi',
+            example_present: null,
+            example_past: null,
+            example_future: null
         },
         onRate: jest.fn(),
         isFlipped: false,

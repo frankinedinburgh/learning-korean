@@ -4,7 +4,16 @@ import { memo } from 'react'
 import type { CardWithReview } from '@/lib/types'
 
 interface FlashcardProps {
-  card: Pick<CardWithReview, 'korean' | 'english' | 'romanization' | 'category'>
+  card: Pick<
+    CardWithReview,
+    | 'korean'
+    | 'english'
+    | 'romanization'
+    | 'category'
+    | 'example_present'
+    | 'example_past'
+    | 'example_future'
+  >
   onRate: (rating: 1 | 2 | 3 | 4) => void
   isFlipped: boolean
   onFlip: () => void
@@ -61,6 +70,28 @@ export default memo(function Flashcard({ card, onRate, isFlipped, onFlip }: Flas
             </p>
             {card.romanization && (
               <p className="text-accent2 text-sm tracking-wide">{card.romanization}</p>
+            )}
+            {(card.example_present || card.example_past || card.example_future) && (
+              <div className="mt-3 flex gap-3 text-xs">
+                {card.example_present && (
+                  <span className="text-muted">
+                    <span className="uppercase tracking-widest text-[10px] text-muted/60">Pres </span>
+                    <span className="font-korean text-white">{card.example_present}</span>
+                  </span>
+                )}
+                {card.example_past && (
+                  <span className="text-muted">
+                    <span className="uppercase tracking-widest text-[10px] text-muted/60">Past </span>
+                    <span className="font-korean text-white">{card.example_past}</span>
+                  </span>
+                )}
+                {card.example_future && (
+                  <span className="text-muted">
+                    <span className="uppercase tracking-widest text-[10px] text-muted/60">Fut </span>
+                    <span className="font-korean text-white">{card.example_future}</span>
+                  </span>
+                )}
+              </div>
             )}
           </div>
         </div>

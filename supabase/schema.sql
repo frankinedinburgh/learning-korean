@@ -127,3 +127,38 @@ alter table public.cards add column if not exists subcategory text;
 -- instead, to keep catching duplicates for cards with no subcategory too.
 create unique index if not exists cards_unique_user_category_subcat_korean_english
   on public.cards (user_id, category, coalesce(subcategory, ''), korean, english);
+
+
+-- Sentences — word-order scramble practice, separate from the SM-2 flashcard
+-- pool. `chunks` holds the Korean sentence pre-split into tappable pieces in
+-- correct order (scrambling happens client-side); `decoy_chunks` holds extra
+-- wrong-answer pieces mixed into the word bank to raise difficulty.
+create table if not exists public.sentences (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid references auth.users on delete cascade,
+  korean        text not null,
+  english       text not null,
+  chunks        text[] not null,
+  decoy_chunks  text[] not null default '{}',
+  category      text default 'general',
+  subcategory   text,
+  created_at    timestamptz default now()
+);
+
+alter table public.sentences enable row level security;
+
+create policy "Users can read their own sentences" on public.sentences
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert their own sentences" on public.sentences
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can delete their own sentences" on public.sentences
+  for delete using (auth.uid() = user_id);
+
+
+-- Conjugated tense examples for verb cards, e.g. 가다 -> 가요 / 갔어요 / 갈 거예요.
+-- Nullable: only meaningful for verb-type cards, unused elsewhere.
+alter table public.cards add column if not exists example_present text;
+alter table public.cards add column if not exists example_past text;
+alter table public.cards add column if not exists example_future text;
