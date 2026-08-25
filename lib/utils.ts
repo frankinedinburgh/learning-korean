@@ -35,6 +35,29 @@ export function shuffle<T>(items: T[]): T[] {
   return result
 }
 
+export type CategoryRow = { category: string; subcategory: string | null; count: number }
+
+export function sortCategoryRows(a: CategoryRow, b: CategoryRow) {
+  return a.category.localeCompare(b.category) || (a.subcategory ?? '').localeCompare(b.subcategory ?? '')
+}
+
+// Flat {category, subcategory, count} rows -> category -> subcategories tree.
+// Shared between the deck (cards) and practice (sentences) pages, which both
+// filter by an optional category + subcategory pair.
+export function buildCategoryTree(rows: CategoryRow[]) {
+  const tree = new Map<string, { total: number; subcategories: { subcategory: string; count: number }[] }>()
+  for (const row of rows) {
+    const entry = tree.get(row.category) ?? { total: 0, subcategories: [] }
+    entry.total += row.count
+    if (row.subcategory) entry.subcategories.push({ subcategory: row.subcategory, count: row.count })
+    tree.set(row.category, entry)
+  }
+  Array.from(tree.values()).forEach((entry) => {
+    entry.subcategories.sort((a, b) => a.subcategory.localeCompare(b.subcategory))
+  })
+  return tree
+}
+
 export function flattenCategories<T>(decks: { name: string; cards: T[] }[]) {
   return decks.flatMap((deck) => {
     return deck.cards.map((card) => {

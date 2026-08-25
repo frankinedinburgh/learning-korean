@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Nav from '@/components/Nav'
 import SentenceScramble from '@/components/SentenceScramble'
-import { shuffle } from '@/lib/utils'
+import { shuffle, buildCategoryTree, sortCategoryRows, type CategoryRow } from '@/lib/utils'
 import type { Sentence } from '@/lib/types'
 
 type SessionState =
@@ -27,16 +27,31 @@ const emptyForm = {
 function PracticePageContent() {
   const [session, setSession] = useState<SessionState>({ status: 'loading' })
   const searchParams = useSearchParams()
-  const category = searchParams.get('category')
+
+  const [categoryRows, setCategoryRows] = useState<CategoryRow[]>([])
+  const [activeCategory, setActiveCategory] = useState(searchParams.get('category') ?? 'all')
+  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(
+    searchParams.get('subcategory')
+  )
 
   const [formState, setFormState] = useState<FormState>('closed')
   const [form, setForm] = useState(emptyForm)
   const [addError, setAddError] = useState<string | null>(null)
 
+  const categoryTree = buildCategoryTree(categoryRows)
+  const categories = ['all', ...Array.from(categoryTree.keys()).sort()]
+  const activeSubcategories = categoryTree.get(activeCategory)?.subcategories ?? []
+
+  const fetchCategories = useCallback(async () => {
+    const res = await fetch('/api/sentences/categories')
+    if (res.ok) setCategoryRows(await res.json())
+  }, [])
+
   const fetchSentences = useCallback(async () => {
     setSession({ status: 'loading' })
     const params = new URLSearchParams()
-    if (category) params.set('category', category)
+    if (activeCategory !== 'all') params.set('category', activeCategory)
+    if (activeSubcategory) params.set('subcategory', activeSubcategory)
     const res = await fetch(`/api/sentences?${params}`)
     const data: Sentence[] = await res.json()
     if (data.length === 0) {
@@ -44,11 +59,33 @@ function PracticePageContent() {
       return
     }
     setSession({ status: 'active', sentences: shuffle(data), index: 0, correct: 0 })
-  }, [category])
+  }, [activeCategory, activeSubcategory])
+
+  useEffect(() => {
+    fetchCategories()
+  }, [fetchCategories])
 
   useEffect(() => {
     fetchSentences()
   }, [fetchSentences])
+
+  function selectCategory(cat: string) {
+    setActiveCategory(cat)
+    setActiveSubcategory(null)
+  }
+
+  function bumpCategoryCount(category: string, subcategory: string | null, delta: number) {
+    setCategoryRows((prev) => {
+      const idx = prev.findIndex((r) => r.category === category && r.subcategory === subcategory)
+      if (idx === -1) {
+        if (delta <= 0) return prev
+        return [...prev, { category, subcategory, count: delta }].sort(sortCategoryRows)
+      }
+      const nextCount = prev[idx].count + delta
+      if (nextCount <= 0) return prev.filter((_, i) => i !== idx)
+      return prev.map((r, i) => (i === idx ? { ...r, count: nextCount } : r))
+    })
+  }
 
   function handleComplete(wasCorrect: boolean) {
     setSession((prev) => {
@@ -77,6 +114,8 @@ function PracticePageContent() {
 
     setFormState('saving')
     setAddError(null)
+    const category = form.category || 'general'
+    const subcategory = form.subcategory || null
     const res = await fetch('/api/sentences', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -85,8 +124,8 @@ function PracticePageContent() {
         english: form.english,
         chunks,
         decoy_chunks,
-        category: form.category || 'general',
-        subcategory: form.subcategory || null,
+        category,
+        subcategory,
       }),
     })
     if (!res.ok) {
@@ -95,6 +134,7 @@ function PracticePageContent() {
       setFormState('open')
       return
     }
+    bumpCategoryCount(category, subcategory, 1)
     setForm(emptyForm)
     setFormState('closed')
     fetchSentences()
@@ -104,14 +144,66 @@ function PracticePageContent() {
     <div className="min-h-screen flex flex-col bg-bg">
       <Nav />
 
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-10 gap-8 relative z-10">
-        <div className="w-full max-w-lg flex justify-end">
-          <button
-            onClick={() => setFormState(formState === 'closed' ? 'open' : 'closed')}
-            className="border border-accent text-accent text-xs uppercase tracking-widest px-4 py-1.5 rounded-xl hover:bg-accent/10 transition-all"
-          >
-            {formState === 'closed' ? '+ Add Sentence' : 'Cancel'}
-          </button>
+      <main className="flex-1 flex flex-col items-center px-4 py-10 gap-8 relative z-10">
+        <div className="w-full max-w-lg flex flex-col gap-3">
+          <div className="flex justify-end">
+            <button
+              onClick={() => setFormState(formState === 'closed' ? 'open' : 'closed')}
+              className="border border-accent text-accent text-xs uppercase tracking-widest px-4 py-1.5 rounded-xl hover:bg-accent/10 transition-all"
+            >
+              {formState === 'closed' ? '+ Add Sentence' : 'Cancel'}
+            </button>
+          </div>
+
+          {/* Category filter pills */}
+          <div className="flex gap-2 flex-wrap">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => selectCategory(cat)}
+                className={`text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border transition-all ${
+                  activeCategory === cat
+                    ? 'border-accent text-accent bg-accent/10'
+                    : 'border-border text-muted hover:text-white'
+                }`}
+              >
+                {cat}
+                {cat !== 'all' && (
+                  <span className="ml-1.5 opacity-50">{categoryTree.get(cat)?.total ?? 0}</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Subcategory filter pills — only shown when the active category has any */}
+          {activeCategory !== 'all' && activeSubcategories.length > 0 && (
+            <div className="flex gap-2 flex-wrap pl-4 border-l-2 border-border">
+              <button
+                onClick={() => setActiveSubcategory(null)}
+                className={`text-xs uppercase tracking-widest px-3 py-1 rounded-full border transition-all ${
+                  activeSubcategory === null
+                    ? 'border-accent2 text-accent2 bg-accent2/10'
+                    : 'border-border text-muted hover:text-white'
+                }`}
+              >
+                All
+              </button>
+              {activeSubcategories.map(({ subcategory, count }) => (
+                <button
+                  key={subcategory}
+                  onClick={() => setActiveSubcategory(subcategory)}
+                  className={`text-xs uppercase tracking-widest px-3 py-1 rounded-full border transition-all ${
+                    activeSubcategory === subcategory
+                      ? 'border-accent2 text-accent2 bg-accent2/10'
+                      : 'border-border text-muted hover:text-white'
+                  }`}
+                >
+                  {subcategory}
+                  <span className="ml-1.5 opacity-50">{count}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {formState !== 'closed' && (
@@ -173,8 +265,8 @@ function PracticePageContent() {
 
         {session.status === 'empty' && (
           <div className="text-center flex flex-col items-center gap-3">
-            <p className="text-muted text-sm">No sentences yet.</p>
-            <p className="text-muted text-xs">Use the &ldquo;+ Add Sentence&rdquo; button above to create your first one.</p>
+            <p className="text-muted text-sm">No sentences in this category yet.</p>
+            <p className="text-muted text-xs">Use the &ldquo;+ Add Sentence&rdquo; button above to create one.</p>
           </div>
         )}
 

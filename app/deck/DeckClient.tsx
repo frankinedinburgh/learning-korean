@@ -3,34 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import type { CardWithReview } from '@/lib/types'
+import { buildCategoryTree, sortCategoryRows, type CategoryRow } from '@/lib/utils'
 
 type FormState = 'closed' | 'open' | 'saving'
-type CategoryRow = { category: string; subcategory: string | null; count: number }
 
 const STAGE_COLORS: Record<string, string> = {
   new: '#7c6af7',
   learning: '#e8c547',
   review: '#4ecdc4',
   mastered: '#69db7c',
-}
-
-function sortRows(a: CategoryRow, b: CategoryRow) {
-  return a.category.localeCompare(b.category) || (a.subcategory ?? '').localeCompare(b.subcategory ?? '')
-}
-
-// Flat {category, subcategory, count} rows -> category -> subcategories tree
-function buildCategoryTree(rows: CategoryRow[]) {
-  const tree = new Map<string, { total: number; subcategories: { subcategory: string; count: number }[] }>()
-  for (const row of rows) {
-    const entry = tree.get(row.category) ?? { total: 0, subcategories: [] }
-    entry.total += row.count
-    if (row.subcategory) entry.subcategories.push({ subcategory: row.subcategory, count: row.count })
-    tree.set(row.category, entry)
-  }
-  Array.from(tree.values()).forEach((entry) => {
-    entry.subcategories.sort((a, b) => a.subcategory.localeCompare(b.subcategory))
-  })
-  return tree
 }
 
 export default function DeckClient({
@@ -155,7 +136,7 @@ export default function DeckClient({
       const idx = prev.findIndex((r) => r.category === category && r.subcategory === subcategory)
       if (idx === -1) {
         if (delta <= 0) return prev
-        return [...prev, { category, subcategory, count: delta }].sort(sortRows)
+        return [...prev, { category, subcategory, count: delta }].sort(sortCategoryRows)
       }
       const nextCount = prev[idx].count + delta
       if (nextCount <= 0) return prev.filter((_, i) => i !== idx)
