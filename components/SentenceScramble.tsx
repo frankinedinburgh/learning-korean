@@ -73,9 +73,10 @@ export default function SentenceScramble({ sentence, onComplete }: SentenceScram
         </div>
 
         {result === 'incorrect' && (
-          <p className="text-sm text-muted">
-            Correct answer: <span className="text-accent2">{correctAnswer}</span>
-          </p>
+          <div className="flex flex-col gap-1">
+            <p className="text-xs uppercase tracking-widest text-muted">Correct answer</p>
+            <p className="font-korean text-xl text-accent2">{correctAnswer}</p>
+          </div>
         )}
 
         {/* Word bank */}
