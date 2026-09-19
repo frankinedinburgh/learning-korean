@@ -72,10 +72,11 @@ async function getStats(): Promise<StatsData> {
 }
 
 // Synchronous — renders shell immediately, no waiting
-export default function StatsPage() {
+export default async function StatsPage() {
+  const stats = await getStats()
   return (
     <div className="min-h-screen flex flex-col bg-bg">
-      <Nav />
+      <Nav cardCount={stats.total} />
       <main className="flex-1 max-w-2xl mx-auto w-full px-6 py-10 relative z-10">
         <h1 className="font-serif text-3xl italic text-foreground mb-8">Your Progress</h1>
 
@@ -86,7 +87,7 @@ export default function StatsPage() {
             </p>
           }
         >
-          <StatsContent />
+          <StatsContent stats={stats} />
         </Suspense>
       </main>
     </div>
@@ -94,8 +95,7 @@ export default function StatsPage() {
 }
 
 // Async — fetches data here, inside the Suspense boundary, suspends while fetching
-async function StatsContent() {
-  const stats = await getStats()
+async function StatsContent({ stats }: { stats: StatsData }) {
   const maxCount = Math.max(...Object.values(stats.counts), 1)
   return <StatsGrid stats={stats} maxCount={maxCount} />
 }

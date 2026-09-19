@@ -36,14 +36,10 @@ export function shuffle<T>(items: T[]): T[] {
   for (let i = result.length - 1; i > 0; i--) {
     const randomNum = randomValues[randomIndex++]
     const j = Math.floor(randomNum * (i + 1))
-    console.log(`i=${i}, random=${randomNum}, j=${j}`)
     ;[result[i], result[j]] = [result[j], result[i]]
-    console.log(`After swap: ${JSON.stringify(result)}`)
   }
   return result
 }
-
-console.log('Final:', shuffle([10, 20, 30, 40]))
 
 export type CategoryRow = { category: string; subcategory: string | null; count: number }
 

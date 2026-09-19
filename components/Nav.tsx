@@ -7,10 +7,11 @@ import Toggle from './Toggle'
 import NavTabs from './NavTabs'
 
 interface NavProps {
+  cardCount: number
   dueCount?: number
 }
 
-export default function Nav({ dueCount = 0 }: NavProps) {
+export default function Nav({ cardCount, dueCount = 0 }: NavProps) {
   const router = useRouter()
   const supabase = createClient()
   const [isOpen, setIsOpen] = useState(false)
@@ -26,8 +27,8 @@ export default function Nav({ dueCount = 0 }: NavProps) {
   }
 
   const tabs = [
-    { href: '/study', label: 'Study' },
-    { href: '/practice', label: 'Practice' },
+    { href: '/study', label: 'Study', disabled: cardCount === 0 },
+    { href: '/practice', label: 'Practice', disabled: cardCount === 0 },
     { href: '/deck', label: 'Deck' },
     { href: '/stats', label: 'Stats' },
   ]

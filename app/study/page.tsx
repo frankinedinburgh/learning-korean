@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Nav from '@/components/Nav'
 import Flashcard from '@/components/Flashcard'
 import { StudySessionFactory } from '@/lib/study-session-factory'
@@ -13,6 +13,7 @@ type SessionState =
   | { status: 'complete'; total: number }
 
 function StudyPageContent() {
+  const router = useRouter()
   const handleKeyDownRef = useRef<(e: KeyboardEvent) => void>()
   const [session, setSession] = useState<SessionState>({ status: 'loading' })
   const searchParams = useSearchParams()
@@ -90,9 +91,14 @@ function StudyPageContent() {
       ? (session.done / session.cards.length) * 100
       : 0
 
+  if (session.status === 'active' && session.cards.length === 0) {
+    router.push('/deck')
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-bg">
       <Nav
+        cardCount={session.status === 'active' ? session.cards.length : 0}
         dueCount={Math.max(
           0,
           session.status === 'active' ? session.cards.length - session.done : 0

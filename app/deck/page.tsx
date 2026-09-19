@@ -20,7 +20,7 @@ export default async function DeckPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-bg">
-      <Nav />
+      <Nav cardCount={initialCards.length} />
       <DeckClient
         initialCards={initialCards}
         initialCategories={categories}

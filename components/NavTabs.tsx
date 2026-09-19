@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 interface INavTabs {
-  tabs: { href: string; label: string }[]
+  tabs: { href: string; label: string; disabled?: boolean }[]
   onClose: () => void
 }
 
@@ -18,7 +18,7 @@ export default function NavTabs({ tabs, onClose }: INavTabs) {
           key={tab.href}
           href={tab.href}
           onClick={onClose}
-          className={`px-4 py-1.5 rounded-lg text-xs tracking-widest uppercase transition-all ${
+          className={`px-4 py-1.5 rounded-lg text-xs tracking-widest uppercase transition-all ${tab.disabled ? 'opacity-50 pointer-events-none' : ''} ${
             pathname === tab.href
               ? 'bg-surface2 text-white border border-border'
               : 'text-muted hover:text-white'
