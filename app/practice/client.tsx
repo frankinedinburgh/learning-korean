@@ -307,14 +307,6 @@ function Content({
           </div>
         )}
 
-        {console.log(
-          'RENDER check',
-          session.status,
-          session.status === 'active' ? session.index : null,
-          session.status === 'active' ? session.sentences.length : null,
-          session.status === 'active' ? session.sentences[session.index] : null
-        )}
-
         {session.status === 'active' && (
           <>
             <div className="w-full max-w-lg flex flex-col gap-2">
