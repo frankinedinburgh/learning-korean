@@ -2,9 +2,9 @@ export type Rating = 1 | 2 | 3 | 4 // again | hard | good | easy
 export type Stage = 'new' | 'learning' | 'review' | 'mastered'
 
 export interface ReviewState {
-  interval_days: number
-  ease_factor: number
-  repetitions: number
+  interval_days: number // number of days until the next review
+  ease_factor: number // deafutl 2.5 A multiplier that indicates how easy a card is to remember, starting at 2.5.
+  repetitions: number // 	The count of consecutive successful recalls, which influences the interval.
   due: string // ISO timestamp
   stage: Stage
 }
@@ -15,7 +15,7 @@ export interface ReviewState {
  */
 export function scheduleCard(current: ReviewState, rating: Rating): ReviewState {
   const now = Date.now()
-  const day = 86_400_000
+  const day = 86_400_000 //  1 day
 
   const strategies: Record<Rating, (state: ReviewState) => Partial<ReviewState>> = {
     1: ({ ease_factor }) => ({

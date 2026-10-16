@@ -7,7 +7,7 @@ import Toggle from './Toggle'
 import NavTabs from './NavTabs'
 
 interface NavProps {
-  cardCount: number
+  cardCount?: number
   dueCount?: number
 }
 

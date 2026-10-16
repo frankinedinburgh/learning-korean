@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
   const currentState: ReviewState = existing ?? {
     interval_days: 0,
-    ease_factor: 2.5,
+    ease_factor: 2.5, // SM-2 default
     repetitions: 0,
     due: new Date().toISOString(),
     stage: 'new',

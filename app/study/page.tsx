@@ -12,9 +12,12 @@ type SessionState =
   | { status: 'active'; cards: CardWithReview[]; index: number; done: number; isFlipped: boolean }
   | { status: 'complete'; total: number }
 
+type Rating = 1 | 2 | 3 | 4
+
 function StudyPageContent() {
   const router = useRouter()
   const handleKeyDownRef = useRef<(e: KeyboardEvent) => void>()
+
   const [session, setSession] = useState<SessionState>({ status: 'loading' })
   const searchParams = useSearchParams()
   const category = searchParams.get('category')
@@ -43,7 +46,7 @@ function StudyPageContent() {
   }, [fetchDueCards])
 
   const handleRate = useCallback(
-    async (rating: 1 | 2 | 3 | 4) => {
+    async (rating: Rating) => {
       if (session.status !== 'active') return
       const card = session.cards[session.index]
       if (!card) return
