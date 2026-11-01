@@ -1,7 +1,9 @@
 'use client'
 
 import { memo } from 'react'
+import { Volume2 } from 'lucide-react'
 import type { CardWithReview } from '@/lib/types'
+import { speakKorean } from '@/lib/speech'
 
 interface FlashcardProps {
   card: Pick<
@@ -25,6 +27,11 @@ export default memo(function Flashcard({ card, onRate, isFlipped, onFlip }: Flas
     setTimeout(() => onRate(rating), 100)
   }
 
+  function handleVoice(event: React.SyntheticEvent<HTMLButtonElement>, text: string) {
+    event.stopPropagation()
+    return speakKorean(text)
+  }
+
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-lg mx-auto">
       {/* Card */}
@@ -43,8 +50,17 @@ export default memo(function Flashcard({ card, onRate, isFlipped, onFlip }: Flas
                 'radial-gradient(ellipse at 30% 20%, rgba(124,106,247,0.08) 0%, transparent 60%), #16161a',
             }}
           >
-            <span className="absolute top-4 right-4 text-xs uppercase tracking-widest text-muted bg-surface2 border border-border px-3 py-1 rounded-full">
-              {card.category}
+            <span className="absolute top-4 right-4 flex items-center gap-2">
+              <span className="text-xs uppercase tracking-widest text-muted bg-surface2 border border-border px-3 py-1 rounded-full">
+                {card.category}
+              </span>
+              <button
+                className="text-xs uppercase tracking-widest text-muted bg-surface2 border border-border px-3 py-1 rounded-full"
+                onClick={(evt) => handleVoice(evt, card.korean)}
+                aria-label="Listen"
+              >
+                <Volume2 size={14} />
+              </button>
             </span>
             <p className="text-xs uppercase tracking-widest text-muted">Korean</p>
             <p className="font-korean text-5xl font-bold text-white leading-tight text-center">

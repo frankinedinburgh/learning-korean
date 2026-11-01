@@ -1,8 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { Volume2 } from 'lucide-react'
 import type { Sentence } from '@/lib/types'
 import { shuffle } from '@/lib/utils'
+import { speakKorean } from '@/lib/speech'
 
 interface Tile {
   id: string
@@ -46,7 +48,16 @@ export default function SentenceScramble({ sentence, onComplete }: SentenceScram
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-lg mx-auto">
       <div className="w-full bg-surface border border-border rounded-2xl p-6 flex flex-col gap-4">
-        <p className="text-xs uppercase tracking-widest text-muted">Translate this sentence</p>
+        <div className="flex flex-row justify-between">
+          <p className="text-xs uppercase tracking-widest text-muted">Translate this sentence</p>
+          <button
+            className="text-xs uppercase tracking-widest text-muted bg-surface2 border border-border px-3 py-1 rounded-full"
+            onClick={() => speakKorean(correctAnswer)}
+            aria-label="Listen"
+          >
+            <Volume2 size={14} />
+          </button>
+        </div>
         <p className="font-serif text-xl italic text-white">{sentence.english}</p>
 
         {/* Answer strip */}
