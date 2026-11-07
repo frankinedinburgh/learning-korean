@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:openalternative.co)",
+      "Bash(make -n backend-dev)",
+      "Bash(make -n frontend-build)",
+      "Bash(make -n java-test)"
+    ]
+  }
+}
